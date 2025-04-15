@@ -2,131 +2,232 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TIC-TAC-AI</title>
+  <title>reCAPTCHA Tic Tac Toe vs AI</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
-
     body {
-      margin: 0;
-      background-color: #0a0a0a;
-      color: #0f0;
-      font-family: 'Orbitron', sans-serif;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      align-items: center;
+      height: 100vh;
     }
 
-    h1 {
-      font-size: 3rem;
-      text-shadow: 0 0 10px #0f0;
+    .captcha-container {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      box-shadow: 0 0 10px #ccc;
+      width: 320px;
+      text-align: center;
+      border-radius: 4px;
     }
 
-    p {
-      font-size: 1.2rem;
-      color: #0f0;
-      margin-bottom: 20px;
-      text-shadow: 0 0 5px #0f0;
+    .captcha-container h2 {
+      font-size: 16px;
+      margin: 0 0 15px;
     }
 
-    .board {
+    .grid {
       display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 10px;
+      grid-template-columns: repeat(3, 90px);
+      grid-template-rows: repeat(3, 90px);
+      gap: 5px;
+      margin: 0 auto 20px;
     }
 
     .cell {
-      width: 100px;
-      height: 100px;
-      border: 2px solid #0f0;
-      background-color: #111;
-      cursor: pointer;
-      overflow: hidden;
+      background: #eee;
+      border: 1px solid #bbb;
+      font-size: 2rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
     }
 
-    .cell img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .cell:hover {
+      background: #ddd;
+    }
+
+    .cell.taken {
+      cursor: not-allowed;
+      background: #ddd;
+      color: #555;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+    }
+
+    .checkbox input {
+      margin-right: 6px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 8px 20px;
+      font-size: 0.9rem;
+      border: none;
+      background: #4285f4;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3367d6;
     }
   </style>
 </head>
 <body>
-  <h1>TIC-TAC-AI</h1>
-  <p>Pick random sky images to use for X</p>
-  <div class="board" id="board"></div>
+  <div class="captcha-container">
+    <h2>Select all squares with 🐱 to win</h2>
+    <div class="grid" id="board"></div>
+
+    <div class="footer">
+      <div class="checkbox">
+        <input type="checkbox" disabled checked />
+        <span>I'm not a robot</span>
+      </div>
+      <div class="status" id="status">Your turn: 🐱</div>
+    </div>
+
+    <button id="restart">Try Again</button>
+  </div>
 
   <script>
-    const skyImages = [
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1503264116251-35a269479413?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1487621167305-5d248087c724?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1527852782268-9ac234c904ed?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=100&h=100&fit=crop'
+    const boardElement = document.getElementById('board');
+    const statusText = document.getElementById('status');
+    const restartBtn = document.getElementById('restart');
+
+    let board = Array(9).fill('');
+    const human = '🐱';
+    const ai = '🤖';
+    let gameOver = false;
+
+    const winPatterns = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
     ];
-
-    const animalImages = [
-      'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1501706362039-c6e80948b205?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1509339022327-1e1e25360a6f?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=100&h=100&fit=crop'
-    ];
-
-    const board = document.getElementById('board');
-    let boardState = Array(9).fill(null);
-    let isPlayerTurn = true;
-
-    function getRandomImage(type) {
-      const arr = type === 'sky' ? skyImages : animalImages;
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
 
     function renderBoard() {
-      board.innerHTML = '';
-      boardState.forEach((cell, i) => {
+      boardElement.innerHTML = '';
+      board.forEach((cell, i) => {
         const div = document.createElement('div');
         div.classList.add('cell');
-        div.dataset.index = i;
-        if (cell) {
-          const img = document.createElement('img');
-          img.src = cell;
-          div.appendChild(img);
+        div.textContent = cell;
+        if (cell !== '') {
+          div.classList.add('taken');
+        } else if (!gameOver) {
+          div.addEventListener('click', () => playerMove(i));
         }
-        board.appendChild(div);
+        boardElement.appendChild(div);
       });
     }
 
-    function handleClick(e) {
-      const index = e.target.dataset.index;
-      if (!index || boardState[index]) return;
+    function playerMove(i) {
+      if (board[i] || gameOver) return;
 
-      if (isPlayerTurn) {
-        boardState[index] = getRandomImage('sky');
-        isPlayerTurn = false;
-        renderBoard();
-        setTimeout(aiMove, 500);
+      board[i] = human;
+      renderBoard();
+
+      if (checkWin(human)) {
+        statusText.textContent = "You win! ✅";
+        gameOver = true;
+        return;
       }
+
+      if (isDraw()) {
+        statusText.textContent = "It's a draw 🤖";
+        gameOver = true;
+        return;
+      }
+
+      statusText.textContent = "🤖 Thinking...";
+      setTimeout(aiMove, 500); // small delay for realism
     }
 
     function aiMove() {
-      const emptyIndices = boardState.map((val, i) => val === null ? i : null).filter(i => i !== null);
-      if (emptyIndices.length === 0) return;
-      const randIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-      boardState[randIndex] = getRandomImage('animal');
-      isPlayerTurn = true;
+      const best = getBestMove();
+      if (best !== null) {
+        board[best] = ai;
+      }
+
       renderBoard();
+
+      if (checkWin(ai)) {
+        statusText.textContent = "🤖 wins!";
+        gameOver = true;
+        return;
+      }
+
+      if (isDraw()) {
+        statusText.textContent = "It's a draw 🤖";
+        gameOver = true;
+        return;
+      }
+
+      statusText.textContent = "Your turn: 🐱";
     }
 
-    board.addEventListener('click', handleClick);
+    function getBestMove() {
+      // Basic AI: Win if possible, block if necessary, else pick random
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = ai;
+          if (checkWin(ai)) {
+            board[i] = '';
+            return i;
+          }
+          board[i] = '';
+        }
+      }
+
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = human;
+          if (checkWin(human)) {
+            board[i] = '';
+            return i;
+          }
+          board[i] = '';
+        }
+      }
+
+      const empty = board.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+      return empty.length > 0 ? empty[Math.floor(Math.random() * empty.length)] : null;
+    }
+
+    function checkWin(player) {
+      return winPatterns.some(pattern =>
+        pattern.every(i => board[i] === player)
+      );
+    }
+
+    function isDraw() {
+      return board.every(cell => cell !== '');
+    }
+
+    restartBtn.addEventListener('click', () => {
+      board = Array(9).fill('');
+      gameOver = false;
+      statusText.textContent = "Your turn: 🐱";
+      renderBoard();
+    });
+
+    // Init
     renderBoard();
   </script>
 </body>
