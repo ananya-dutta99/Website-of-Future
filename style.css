@@ -1,0 +1,84 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .captcha-container {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-shadow: 0 0 10px #ccc;
+    width: 320px;
+    text-align: center;
+    border-radius: 4px;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 90px);
+    grid-template-rows: repeat(3, 90px);
+    gap: 5px;
+    margin: 20px auto;
+  }
+  
+  .cell {
+    background: #eee;
+    border: 1px solid #bbb;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .cell:hover {
+    background: #ddd;
+  }
+  
+  .cell.taken {
+    cursor: not-allowed;
+    background: #ddd;
+    color: #555;
+  }
+  
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+  }
+  
+  .checkbox {
+    display: flex;
+    align-items: center;
+  }
+  
+  .checkbox input {
+    margin-right: 5px;
+  }
+  
+  .status {
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  button {
+    margin-top: 15px;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    border: none;
+    background: #4285f4;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #3367d6;
+  }
+  
